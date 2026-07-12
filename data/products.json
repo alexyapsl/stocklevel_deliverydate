@@ -1,26 +1,10 @@
 [
-  {
-    "sku": "SM-S9480LBOTGY",
-    "name": "Galaxy S26 Ultra 星澄藍/Sky Blue 512 GB"
-  },
-  {
-    "sku": "SM-S9480ZDPTGY",
-    "name": "Galaxy S26 Ultra 星瑰金/Pink Gold 1TB"
-  },
-  {
-    "sku": "MRA115MR95FXZK",
-    "name": "115\" Micro RGB"
-  },
-  {
-    "sku": "SM-F9660ZSGTGY",
-    "name": "Galaxy Z Fold7 512GB | 12GB 霧銀灰 Silver Shadow"
-  },
-  {
-    "sku": "QA43QN70HAJXZK",
-    "name": "43\" Neo QLED QN70H 4K Samsung Vision AI Smart TV (2026)"
-  },
-  {
-    "sku": "SM-S9420LBPTGY",
-    "name": "Galaxy S26 512 GB | 12 GB 星澄藍 Sky Blue"
-  }
+  { "sku": "\"SM-S9480LBOTGY\"", "name": "\"Galaxy S26 Ultra 星澄藍/Sky Blue 512 GB\"" },
+  { "sku": "\"SM-S9480ZDPTGY\"", "name": "\"Galaxy S26 Ultra 星瑰金/Pink Gold 1TB\"" },
+  { "sku": "\"MRA115MR95FXZK\"", "name": "\"115\\"\" Micro RGB\"" },
+  { "sku": "\"SM-F9660ZSGTGY\"", "name": "\"Galaxy Z Fold7 霧銀灰/Silver Shadow 512GB\"" },
+  { "sku": "\"QA43QN70HAJXZK\"", "name": "\"43\\"\" Neo QLED QN70H 4K Samsung Vision AI Smart TV (2026)\"" },
+  { "sku": "\"SM-S9420LBPTGY\"", "name": "\"Galaxy S26 星澄藍/Sky Blue 512 GB\"" },
+  { "sku": "\"SM-S9480ZVPTGY\"", "name": "\"Galaxy S26 Ultra 星暮紫/Cobalt Violet 1TB\"" },
+  { "sku": "\"SM-S9480ZKPTGY\"", "name": "\"Galaxy S26 Ultra 星曜黑/Black 1TB\"" }
 ]
