@@ -32,4 +32,4 @@ jobs:
           git commit --allow-empty -m "chore: update products.json from Google Sheet [$(date '+%Y-%m-%d %H:%M')]"
           git push
         env:
-          GITHUB_TOKEN: *** secrets.STOCKLEVELUPDATER }}
+          GITHUB_TOKEN: ${{ secrets.STOCKLEVELUPDATER }}
