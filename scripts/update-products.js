@@ -15,28 +15,59 @@ function fetchSheet() {
   });
 }
 
+/**
+ * Parse a single CSV line that may contain quoted fields with escaped quotes ("").
+ * This is a minimal but robust parser for our use case.
+ */
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let insideQuotes = false;
+  let i = 0;
+
+  while (i < line.length) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        // Escaped quote ("")
+        current += '"';
+        i += 2;
+        continue;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === ',' && !insideQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+    i++;
+  }
+  result.push(current.trim());
+  return result;
+}
+
 function parseCSV(csv) {
   const lines = csv.trim().split('\n');
-  // Skip header row
-  const dataLines = lines.slice(1);
-  
+  const dataLines = lines.slice(1); // skip header
+
   const products = [];
-  
+
   for (const line of dataLines) {
     if (!line.trim()) continue;
-    
-    // Simple CSV parsing (handles quotes)
-    const match = line.match(/^"([^"]*)","([^"]*)"$/);
-    if (match) {
-      const sku = match[1].trim();
-      const name = match[2].trim();
-      
-      if (sku && name) {
-        products.push({ sku, name });
-      }
+
+    const fields = parseCSVLine(line);
+    const sku = fields[0];
+    const name = fields[1];
+
+    if (sku && name) {
+      products.push({ sku, name });
     }
   }
-  
+
   return products;
 }
 
@@ -44,16 +75,15 @@ async function main() {
   try {
     console.log('Fetching Google Sheet...');
     const csv = await fetchSheet();
-    
+
     console.log('Parsing data...');
     const products = parseCSV(csv);
-    
+
     console.log(`Found ${products.length} products`);
-    
-    // Pretty print JSON
+
     const json = JSON.stringify(products, null, 2);
-    
     fs.writeFileSync(OUTPUT_PATH, json, 'utf8');
+
     console.log(`Successfully wrote ${products.length} products to data/products.json`);
   } catch (error) {
     console.error('Error:', error.message);
