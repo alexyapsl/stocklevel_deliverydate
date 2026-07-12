@@ -16,8 +16,9 @@ function fetchSheet() {
 }
 
 /**
- * Parse a single CSV line that may contain quoted fields with escaped quotes ("").
- * This is a minimal but robust parser for our use case.
+ * Parse CSV line properly.
+ * Google Sheets exports " inside a field as "".
+ * We convert "" → " during parsing.
  */
 function parseCSVLine(line) {
   const result = [];
@@ -31,7 +32,7 @@ function parseCSVLine(line) {
 
     if (char === '"') {
       if (insideQuotes && nextChar === '"') {
-        // Escaped quote ("")
+        // CSV escaped quote: "" → single "
         current += '"';
         i += 2;
         continue;
@@ -39,15 +40,16 @@ function parseCSVLine(line) {
         insideQuotes = !insideQuotes;
       }
     } else if (char === ',' && !insideQuotes) {
-      result.push(current.trim());
+      result.push(current);
       current = '';
     } else {
       current += char;
     }
     i++;
   }
-  result.push(current.trim());
-  return result;
+
+  result.push(current);
+  return result.map(s => s.trim());
 }
 
 function parseCSV(csv) {
