@@ -1,0 +1,58 @@
+name: Update products.json from Google Sheet
+
+on:
+  workflow_dispatch:
+    description: 'Manually update products.json from Google Sheet'
+  repository_dispatch:
+    types: [update-products]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch Google Sheet and generate products.json
+        run: |
+          curl -s "https://docs.google.com/spreadsheets/d/1T4JhPFdWBoSxrBQ2LnPS6CM6h9mPPe4CLgUs2_ea1GU/gviz/tq?tqx=out:csv&gid=0" \
+          | tail -n +2 \
+          | awk -F, '
+            BEGIN {
+              print "["
+            }
+            {
+              gsub(/"/, "\\\"", $1);
+              gsub(/"/, "\\\"", $2);
+              if (NR > 1) printf ",\n";
+              printf "  { \"sku\": \"%s\", \"name\": \"%s\" }", $1, $2
+            }
+            END {
+              print "\n]"
+            }
+          ' > data/products.json
+
+      - name: Check if products.json changed
+        run: |
+          if git diff --quiet data/products.json; then
+            echo "No changes detected. Exiting."
+            exit 0
+          fi
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/products.json
+          git commit -m "chore: update products.json from Google Sheet [$(date '+%Y-%m-%d %H:%M')]" || exit 0
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.STOCKLEVELUPDATER }}
