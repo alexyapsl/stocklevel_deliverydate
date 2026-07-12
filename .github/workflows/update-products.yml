@@ -21,31 +21,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Fetch Google Sheet and generate products.json
-        run: |
-          curl -s "https://docs.google.com/spreadsheets/d/1T4JhPFdWBoSxrBQ2LnPS6CM6h9mPPe4CLgUs2_ea1GU/gviz/tq?tqx=out:csv&gid=0" \
-          | tail -n +2 \
-          | awk -F, '
-            BEGIN {
-              print "["
-            }
-            {
-              gsub(/"/, "\\\"", $1);
-              gsub(/"/, "\\\"", $2);
-              if (NR > 1) printf ",\n";
-              printf "  { \"sku\": \"%s\", \"name\": \"%s\" }", $1, $2
-            }
-            END {
-              print "\n]"
-            }
-          ' > data/products.json
-
-      - name: Check if products.json changed
-        run: |
-          if git diff --quiet data/products.json; then
-            echo "No changes detected. Exiting."
-            exit 0
-          fi
+      - name: Run update script
+        run: node scripts/update-products.js
 
       - name: Commit and push changes
         run: |
