@@ -16,9 +16,9 @@ function fetchSheet() {
 }
 
 /**
- * Parse CSV line properly.
- * Google Sheets exports " inside a field as "".
- * We convert "" → " during parsing.
+ * A simple but robust CSV line parser.
+ * It correctly handles fields enclosed in double quotes,
+ * and converts the CSV escaped quote (two double quotes "") into a single double quote character (").
  */
 function parseCSVLine(line) {
   const result = [];
@@ -28,17 +28,15 @@ function parseCSVLine(line) {
 
   while (i < line.length) {
     const char = line[i];
-    const nextChar = line[i + 1];
 
     if (char === '"') {
-      if (insideQuotes && nextChar === '"') {
-        // CSV escaped quote: "" → single "
+      if (insideQuotes && line[i + 1] === '"') {
+        // This is an escaped quote ("")
         current += '"';
         i += 2;
         continue;
-      } else {
-        insideQuotes = !insideQuotes;
       }
+      insideQuotes = !insideQuotes;
     } else if (char === ',' && !insideQuotes) {
       result.push(current);
       current = '';
@@ -47,29 +45,24 @@ function parseCSVLine(line) {
     }
     i++;
   }
-
   result.push(current);
-  return result.map(s => s.trim());
+  return result.map(field => field.trim());
 }
 
-function parseCSV(csv) {
-  const lines = csv.trim().split('\n');
-  const dataLines = lines.slice(1); // skip header
+function parseCSV(csvContent) {
+  const lines = csvContent.trim().split(/\r?\n/);
+  const dataLines = lines.slice(1); // Skip header row
 
   const products = [];
-
   for (const line of dataLines) {
     if (!line.trim()) continue;
-
     const fields = parseCSVLine(line);
     const sku = fields[0];
     const name = fields[1];
-
     if (sku && name) {
       products.push({ sku, name });
     }
   }
-
   return products;
 }
 
@@ -83,10 +76,10 @@ async function main() {
 
     console.log(`Found ${products.length} products`);
 
-    const json = JSON.stringify(products, null, 2);
-    fs.writeFileSync(OUTPUT_PATH, json, 'utf8');
+    const jsonContent = JSON.stringify(products, null, 2);
+    fs.writeFileSync(OUTPUT_PATH, jsonContent, 'utf8');
 
-    console.log(`Successfully wrote ${products.length} products to data/products.json`);
+    console.log(`Successfully wrote ${products.length} products to ${OUTPUT_PATH}`);
   } catch (error) {
     console.error('Error:', error.message);
     process.exit(1);
