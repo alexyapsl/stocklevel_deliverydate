@@ -14,11 +14,43 @@
     .status-dot.green { background-color: #22c55e; }
     .status-dot.yellow { background-color: #eab308; }
     .status-dot.red { background-color: #ef4444; }
-    table { border-collapse: collapse; }
     th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; }
     th { background-color: #f9fafb; font-weight: 600; color: #374151; }
     tr:hover { background-color: #f9fafb; }
     .last-updated { font-size: 12px; color: #6b7280; }
+
+    /* Horizontal scroll container */
+    .table-container {
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 #f1f5f9;
+    }
+    .table-container::-webkit-scrollbar {
+      height: 6px;
+    }
+    .table-container::-webkit-scrollbar-thumb {
+      background-color: #94a3b8;
+      border-radius: 3px;
+    }
+
+    /* Freeze first two columns */
+    .freeze-col {
+      position: sticky;
+      left: 0;
+      background: white;
+      z-index: 10;
+    }
+    .freeze-col-2 {
+      position: sticky;
+      left: 80px; /* width of SKU column */
+      background: white;
+      z-index: 10;
+      box-shadow: 4px 0 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .scroll-btn {
+      @apply px-3 py-1 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors;
+    }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -43,17 +75,17 @@
   </div>
 
   <!-- Main Dashboard -->
-  <div id="dashboard" class="hidden min-h-screen p-8">
-    <div class="max-w-6xl mx-auto">
+  <div id="dashboard" class="hidden min-h-screen p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-y-4">
         <div>
           <h1 class="text-3xl font-semibold text-gray-900">Stock Level Check</h1>
           <p class="text-sm text-gray-500 mt-1">Samsung HK — Internal Tool</p>
         </div>
         
         <div class="flex items-center gap-x-3">
-          <div class="text-right">
+          <div class="text-right hidden md:block">
             <div class="last-updated" id="last-updated">Last updated: —</div>
             <div class="text-[10px] text-gray-400" id="sku-count"></div>
           </div>
@@ -67,9 +99,9 @@
       </div>
 
       <!-- Search + Filters -->
-      <div class="flex flex-wrap gap-3 mb-4">
+      <div class="flex flex-col md:flex-row gap-3 mb-4">
         <input type="text" id="search-input"
-          class="flex-1 min-w-[240px] px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          class="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           placeholder="Search by product name..."
           oninput="applyFilters()">
 
@@ -85,15 +117,21 @@
           class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">ETA: All</option>
         </select>
+
+        <!-- Scroll controls (visible on mobile) -->
+        <div class="flex items-center gap-2 md:hidden mt-1">
+          <button onclick="scrollLeft()" class="scroll-btn">←</button>
+          <button onclick="scrollRight()" class="scroll-btn">→</button>
+        </div>
       </div>
 
-      <!-- Table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full">
+      <!-- Table with horizontal scroll -->
+      <div id="table-container" class="table-container bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+        <table class="w-full min-w-[800px]">
           <thead>
             <tr>
-              <th class="w-60">SKU</th>
-              <th>Product Name</th>
+              <th class="w-28 freeze-col">SKU</th>
+              <th class="freeze-col-2 min-w-[280px]">Product Name</th>
               <th class="w-40 text-center">Stock Level</th>
               <th class="w-48">Shipping ETA</th>
             </tr>
@@ -109,7 +147,7 @@
   </div>
 
   <script>
-    const PASSWORD = "samsunghk2026";
+    const PASSWORD = "***";
     const JSON_URL = "data/products.json";
     const API_BASE = "https://shop.samsung.com/hk/servicesv2/getSimpleProductsInfo";
     const MAX_SKUS_PER_CALL = 4;
@@ -188,8 +226,8 @@
         const displayStock = (stockLevel === 0) ? "OUT OF STOCK" : stockLevel;
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td class="font-mono text-xs text-gray-500">${product.sku}</td>
-          <td class="font-medium">${product.name}</td>
+          <td class="font-mono text-xs text-gray-500 freeze-col">${product.sku}</td>
+          <td class="font-medium freeze-col-2">${product.name}</td>
           <td class="text-center">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${style.bg}">
               <span class="status-dot ${style.dot}"></span>
@@ -235,12 +273,9 @@
           if (etaFilter === "__no_eta__") {
             return !etaValue || etaValue === "—";
           }
-
           if (etaFilter === "__has_eta__") {
             return etaValue && etaValue !== "—";
           }
-
-          // Specific date prefix (first 10 chars)
           const etaKey = etaValue.substring(0, 10);
           return etaKey === etaFilter;
         });
@@ -249,7 +284,6 @@
       renderTable(filtered, cachedStockMap);
     }
 
-    // Populate ETA dropdown dynamically using the first 10 characters of shippingETA
     function populateEtaFilter(products) {
       const etaSelect = document.getElementById("filter-eta");
       if (!etaSelect) return;
@@ -264,12 +298,10 @@
         }
       });
 
-      // Clear existing options (keep only the first "All")
       while (etaSelect.options.length > 1) {
         etaSelect.remove(1);
       }
 
-      // Add "No ETA" and "Has ETA" options
       const noEtaOption = document.createElement("option");
       noEtaOption.value = "__no_eta__";
       noEtaOption.textContent = "No ETA";
@@ -280,15 +312,22 @@
       hasEtaOption.textContent = "Has ETA";
       etaSelect.appendChild(hasEtaOption);
 
-      // Add specific date prefix options (first 10 characters)
-      Array.from(uniqueEtaKeys)
-        .sort()
-        .forEach(key => {
-          const option = document.createElement("option");
-          option.value = key;
-          option.textContent = key;
-          etaSelect.appendChild(option);
-        });
+      Array.from(uniqueEtaKeys).sort().forEach(key => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = key;
+        etaSelect.appendChild(option);
+      });
+    }
+
+    function scrollLeft() {
+      const container = document.getElementById("table-container");
+      if (container) container.scrollBy({ left: -300, behavior: "smooth" });
+    }
+
+    function scrollRight() {
+      const container = document.getElementById("table-container");
+      if (container) container.scrollBy({ left: 300, behavior: "smooth" });
     }
 
     async function loadInitialData() {
@@ -315,8 +354,8 @@
         updateSkuCount(products.length);
         renderTable(products, cachedStockMap);
         updateLastUpdated();
+        populateEtaFilter(products);
 
-        // Attach filter listeners
         const searchInput = document.getElementById("search-input");
         const stockSelect = document.getElementById("filter-stock");
         const etaSelect = document.getElementById("filter-eta");
@@ -324,9 +363,6 @@
         if (searchInput) searchInput.oninput = applyFilters;
         if (stockSelect) stockSelect.onchange = applyFilters;
         if (etaSelect) etaSelect.onchange = applyFilters;
-
-        // Dynamically populate ETA filter with first 10 characters
-        populateEtaFilter(products);
 
       } catch (error) {
         console.error(error);
