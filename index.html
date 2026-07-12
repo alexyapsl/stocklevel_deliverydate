@@ -46,7 +46,7 @@
   <div id="dashboard" class="hidden min-h-screen p-8">
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-8">
+      <div class="flex justify-between items-center mb-6">
         <div>
           <h1 class="text-3xl font-semibold text-gray-900">Stock Level Check</h1>
           <p class="text-sm text-gray-500 mt-1">Samsung HK — Internal Tool</p>
@@ -64,6 +64,27 @@
             <span>Refresh</span>
           </button>
         </div>
+      </div>
+
+      <!-- Search + Filters -->
+      <div class="flex flex-wrap gap-3 mb-4">
+        <input type="text" id="search-input"
+          class="flex-1 min-w-[240px] px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          placeholder="Search by product name..."
+          oninput="applyFilters()">
+
+        <select id="filter-stock" onchange="applyFilters()"
+          class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Stock: All</option>
+          <option value="in">In Stock (≥1)</option>
+          <option value="low">Low Stock (1-10)</option>
+          <option value="out">Out of Stock (0)</option>
+        </select>
+
+        <select id="filter-eta" onchange="applyFilters()"
+          class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">ETA: All</option>
+        </select>
       </div>
 
       <!-- Table -->
@@ -95,6 +116,7 @@
 
     let hasAccess = false;
     let cachedProducts = [];
+    let cachedStockMap = {};
 
     function checkPassword() {
       const input = document.getElementById("password-input");
@@ -180,26 +202,132 @@
       });
     }
 
+    function applyFilters() {
+      const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
+      const stockFilter = document.getElementById("filter-stock").value;
+      const etaFilter = document.getElementById("filter-eta").value;
+
+      let filtered = cachedProducts;
+
+      // Search filter
+      if (searchTerm) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+      }
+
+      // Stock level filter
+      if (stockFilter) {
+        filtered = filtered.filter(p => {
+          const info = cachedStockMap[p.sku];
+          const level = info && info.stockLevel !== "—" ? parseInt(info.stockLevel) : 0;
+          if (stockFilter === "in") return level >= 1;
+          if (stockFilter === "low") return level >= 1 && level <= 10;
+          if (stockFilter === "out") return level === 0;
+          return true;
+        });
+      }
+
+      // ETA filter
+      if (etaFilter) {
+        filtered = filtered.filter(p => {
+          const info = cachedStockMap[p.sku];
+          const etaValue = (info?.shippingETA || "").trim();
+
+          if (etaFilter === "__no_eta__") {
+            return !etaValue || etaValue === "—";
+          }
+
+          if (etaFilter === "__has_eta__") {
+            return etaValue && etaValue !== "—";
+          }
+
+          // Specific date prefix (first 10 chars)
+          const etaKey = etaValue.substring(0, 10);
+          return etaKey === etaFilter;
+        });
+      }
+
+      renderTable(filtered, cachedStockMap);
+    }
+
+    // Populate ETA dropdown dynamically using the first 10 characters of shippingETA
+    function populateEtaFilter(products) {
+      const etaSelect = document.getElementById("filter-eta");
+      if (!etaSelect) return;
+
+      const uniqueEtaKeys = new Set();
+
+      products.forEach(p => {
+        const info = cachedStockMap[p.sku];
+        if (info && info.shippingETA && info.shippingETA !== "—") {
+          const key = info.shippingETA.substring(0, 10);
+          if (key) uniqueEtaKeys.add(key);
+        }
+      });
+
+      // Clear existing options (keep only the first "All")
+      while (etaSelect.options.length > 1) {
+        etaSelect.remove(1);
+      }
+
+      // Add "No ETA" and "Has ETA" options
+      const noEtaOption = document.createElement("option");
+      noEtaOption.value = "__no_eta__";
+      noEtaOption.textContent = "No ETA";
+      etaSelect.appendChild(noEtaOption);
+
+      const hasEtaOption = document.createElement("option");
+      hasEtaOption.value = "__has_eta__";
+      hasEtaOption.textContent = "Has ETA";
+      etaSelect.appendChild(hasEtaOption);
+
+      // Add specific date prefix options (first 10 characters)
+      Array.from(uniqueEtaKeys)
+        .sort()
+        .forEach(key => {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = key;
+          etaSelect.appendChild(option);
+        });
+    }
+
     async function loadInitialData() {
       const tbody = document.getElementById("table-body");
       tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 text-sm">Loading SKUs and stock data...</td></tr>`;
+
       try {
         const res = await fetch(JSON_URL);
         if (!res.ok) throw new Error("Failed to load products.json");
         const products = await res.json();
         cachedProducts = products;
-        updateSkuCount(products.length);
+
         const skus = products.map(p => p.sku);
         const stockResults = await fetchStockData(skus);
-        const stockMap = {};
+
+        cachedStockMap = {};
         stockResults.forEach(item => {
-          stockMap[item.productCode] = {
+          cachedStockMap[item.productCode] = {
             stockLevel: item.stockLevel ?? "—",
             shippingETA: item.shippingETA ?? "—"
           };
         });
-        renderTable(products, stockMap);
+
+        updateSkuCount(products.length);
+        renderTable(products, cachedStockMap);
         updateLastUpdated();
+
+        // Attach filter listeners
+        const searchInput = document.getElementById("search-input");
+        const stockSelect = document.getElementById("filter-stock");
+        const etaSelect = document.getElementById("filter-eta");
+
+        if (searchInput) searchInput.oninput = applyFilters;
+        if (stockSelect) stockSelect.onchange = applyFilters;
+        if (etaSelect) etaSelect.onchange = applyFilters;
+
+        // Dynamically populate ETA filter with first 10 characters
+        populateEtaFilter(products);
+
       } catch (error) {
         console.error(error);
         tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-red-500 text-sm">Failed to load data. Check console for details.</td></tr>`;
@@ -210,18 +338,22 @@
       if (!cachedProducts.length) return;
       const tbody = document.getElementById("table-body");
       tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 text-sm">Refreshing stock data...</td></tr>`;
+
       try {
         const skus = cachedProducts.map(p => p.sku);
         const stockResults = await fetchStockData(skus);
-        const stockMap = {};
+
+        cachedStockMap = {};
         stockResults.forEach(item => {
-          stockMap[item.productCode] = {
+          cachedStockMap[item.productCode] = {
             stockLevel: item.stockLevel ?? "—",
             shippingETA: item.shippingETA ?? "—"
           };
         });
-        renderTable(cachedProducts, stockMap);
+
+        renderTable(cachedProducts, cachedStockMap);
         updateLastUpdated();
+
       } catch (error) {
         console.error(error);
         tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-red-500 text-sm">Refresh failed.</td></tr>`;
