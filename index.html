@@ -48,10 +48,6 @@
       box-shadow: 4px 0 6px -1px rgb(0 0 0 / 0.1);
     }
 
-    .scroll-btn {
-      @apply px-3 py-1 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors;
-    }
-
     /* Mobile card styles */
     #mobile-cards {
       padding: 0 12px; /* give breathing room on very narrow phones */
@@ -169,12 +165,6 @@
           class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">ETA: All</option>
         </select>
-
-        <!-- Scroll controls (visible on mobile) -->
-        <div class="flex items-center gap-2 md:hidden mt-1">
-          <button onclick="scrollLeft()" class="scroll-btn">←</button>
-          <button onclick="scrollRight()" class="scroll-btn">→</button>
-        </div>
       </div>
 
       <!-- Table (desktop) -->
@@ -408,16 +398,6 @@
         option.textContent = key;
         etaSelect.appendChild(option);
       });
-    }
-
-    function scrollLeft() {
-      const container = document.getElementById("table-container");
-      if (container) container.scrollBy({ left: -300, behavior: "smooth" });
-    }
-
-    function scrollRight() {
-      const container = document.getElementById("table-container");
-      if (container) container.scrollBy({ left: 300, behavior: "smooth" });
     }
 
     async function loadInitialData() {
