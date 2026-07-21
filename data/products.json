@@ -1,38 +1,170 @@
 [
   {
-    "sku": "SM-S9480LBOTGY",
-    "name": "Galaxy S26 Ultra 星澄藍/Sky Blue 512 GB"
+    "sku": "SM-F9760ZWPTGY",
+    "name": "Galaxy Z Fold8 Ultra | 1TB+16GB | Cream 雪絨白"
   },
   {
-    "sku": "SM-S9480ZDPTGY",
-    "name": "Galaxy S26 Ultra 星瑰金/Pink Gold 1TB"
+    "sku": "SM-F9760ZKPTGY",
+    "name": "Galaxy Z Fold8 Ultra | 1TB+16GB | Graphite 霧岩灰"
   },
   {
-    "sku": "MRA115MR95FXZK",
-    "name": "115\" Micro RGB"
+    "sku": "SM-F9760ZVPTGY",
+    "name": "Galaxy Z Fold8 Ultra | 1TB+16GB | Violet Shadow 丁香紫"
   },
   {
-    "sku": "SM-F9660ZSGTGY",
-    "name": "Galaxy Z Fold7 霧銀灰/Silver Shadow 512GB"
+    "sku": "SM-F9760DGPTGY",
+    "name": "Galaxy Z Fold8 Ultra | 1TB+16GB | Green Shadow 墨翠綠"
   },
   {
-    "sku": "QA43QN70HAJXZK",
-    "name": "43\" Neo QLED QN70H 4K Samsung Vision AI Smart TV (2026)"
+    "sku": "SM-F9760ZWOTGY",
+    "name": "Galaxy Z Fold8 Ultra | 512GB+12GB | Cream 雪絨白"
   },
   {
-    "sku": "SM-S9420LBPTGY",
-    "name": "Galaxy S26 星澄藍/Sky Blue 512 GB"
+    "sku": "SM-F9760ZKOTGY",
+    "name": "Galaxy Z Fold8 Ultra | 512GB+12GB | Graphite 霧岩灰"
   },
   {
-    "sku": "SM-S9480ZVPTGY",
-    "name": "Galaxy S26 Ultra 星暮紫/Cobalt Violet 1TB"
+    "sku": "SM-F9760ZVOTGY",
+    "name": "Galaxy Z Fold8 Ultra | 512GB+12GB | Violet Shadow 丁香紫"
   },
   {
-    "sku": "SM-S9480ZKPTGY",
-    "name": "Galaxy S26 Ultra 星曜黑/Black 1TB"
+    "sku": "SM-F9760DGOTGY",
+    "name": "Galaxy Z Fold8 Ultra | 512GB+12GB | Green Shadow 墨翠綠"
   },
   {
-    "sku": "SM-S9480ZWOTGY",
-    "name": "Galaxy S26 Ultra 星霜白/White 512 GB"
+    "sku": "SM-F9760ZWITGY",
+    "name": "Galaxy Z Fold8 Ultra | 256GB+12GB | Cream 雪絨白"
+  },
+  {
+    "sku": "SM-F9760ZKITGY",
+    "name": "Galaxy Z Fold8 Ultra | 256GB+12GB | Graphite 霧岩灰"
+  },
+  {
+    "sku": "SM-F9760ZVITGY",
+    "name": "Galaxy Z Fold8 Ultra | 256GB+12GB | Violet Shadow 丁香紫"
+  },
+  {
+    "sku": "SM-F9760DGITGY",
+    "name": "Galaxy Z Fold8 Ultra | 256GB+12GB | Green Shadow 墨翠綠"
+  },
+  {
+    "sku": "SM-F9710ZWPTGY",
+    "name": "Galaxy Z Fold8 | 1TB+16GB | Cream 雪絨白"
+  },
+  {
+    "sku": "SM-F9710ZKPTGY",
+    "name": "Galaxy Z Fold8 | 1TB+16GB | Graphite 霧岩灰"
+  },
+  {
+    "sku": "SM-F9710LVPTGY",
+    "name": "Galaxy Z Fold8 | 1TB+16GB | Lavender 迷迭紫"
+  },
+  {
+    "sku": "SM-F9710ZGPTGY",
+    "name": "Galaxy Z Fold8 | 1TB+16GB | Pistachio 琥珀綠"
+  },
+  {
+    "sku": "SM-F9710ZWOTGY",
+    "name": "Galaxy Z Fold8 | 512GB+12GB | Cream 雪絨白"
+  },
+  {
+    "sku": "SM-F9710ZKOTGY",
+    "name": "Galaxy Z Fold8 | 512GB+12GB | Graphite 霧岩灰"
+  },
+  {
+    "sku": "SM-F9710LVOTGY",
+    "name": "Galaxy Z Fold8 | 512GB+12GB | Lavender 迷迭紫"
+  },
+  {
+    "sku": "SM-F9710ZGOTGY",
+    "name": "Galaxy Z Fold8 | 512GB+12GB | Pistachio 琥珀綠"
+  },
+  {
+    "sku": "SM-F9710ZWITGY",
+    "name": "Galaxy Z Fold8 | 256GB+12GB | Cream 雪絨白"
+  },
+  {
+    "sku": "SM-F9710ZKITGY",
+    "name": "Galaxy Z Fold8 | 256GB+12GB | Graphite 霧岩灰"
+  },
+  {
+    "sku": "SM-F9710LVITGY",
+    "name": "Galaxy Z Fold8 | 256GB+12GB | Lavender 迷迭紫"
+  },
+  {
+    "sku": "SM-F9710ZGITGY",
+    "name": "Galaxy Z Fold8 | 256GB+12GB | Pistachio 琥珀綠"
+  },
+  {
+    "sku": "SM-F7760ZWPTGY",
+    "name": "Galaxy Z Flip8 | 512GB+12GB | Cream 雪絨白"
+  },
+  {
+    "sku": "SM-F7760ZKPTGY",
+    "name": "Galaxy Z Flip8 | 512GB+12GB | Graphite 霧岩灰"
+  },
+  {
+    "sku": "SM-F7760LIPTGY",
+    "name": "Galaxy Z Flip8 | 512GB+12GB | Pink 櫻花粉"
+  },
+  {
+    "sku": "SM-F7760LGPTGY",
+    "name": "Galaxy Z Flip8 | 512GB+12GB | Mint 晶瑛綠"
+  },
+  {
+    "sku": "SM-F7760ZWOTGY",
+    "name": "Galaxy Z Flip8 | 256GB+12GB | Cream 雪絨白"
+  },
+  {
+    "sku": "SM-F7760ZKOTGY",
+    "name": "Galaxy Z Flip8 | 256GB+12GB | Graphite 霧岩灰"
+  },
+  {
+    "sku": "SM-F7760LIOTGY",
+    "name": "Galaxy Z Flip8 | 256GB+12GB | Pink 櫻花粉"
+  },
+  {
+    "sku": "SM-F7760LGOTGY",
+    "name": "Galaxy Z Flip8 | 256GB+12GB | Mint 晶瑛綠"
+  },
+  {
+    "sku": "SM-L340NZKATGY",
+    "name": "Galaxy Watch9 40mm (BT) | Galaxy Watch9 40mm (藍牙) | Black"
+  },
+  {
+    "sku": "SM-L340NZEATGY",
+    "name": "Galaxy Watch9 40mm (BT) | Galaxy Watch9 40mm (藍牙) | Beige"
+  },
+  {
+    "sku": "SM-L345FZKATGY",
+    "name": "Galaxy Watch9 40mm (LTE) | Galaxy Watch9 40mm (LTE) | Black"
+  },
+  {
+    "sku": "SM-L345FZEATGY",
+    "name": "Galaxy Watch9 40mm (LTE) | Galaxy Watch9 40mm (LTE) | Beige"
+  },
+  {
+    "sku": "SM-L350NZKATGY",
+    "name": "Galaxy Watch9 44mm (BT) | Galaxy Watch9 44mm (藍牙) | Black"
+  },
+  {
+    "sku": "SM-L350NZSATGY",
+    "name": "Galaxy Watch9 44mm (BT) | Galaxy Watch9 44mm (藍牙) | Silver"
+  },
+  {
+    "sku": "SM-L355FZKATGY",
+    "name": "Galaxy Watch9 44mm (LTE) | Galaxy Watch9 44mm (LTE) | Black"
+  },
+  {
+    "sku": "SM-L355FZSATGY",
+    "name": "Galaxy Watch9 44mm (LTE) | Galaxy Watch9 44mm (LTE) | Silver"
+  },
+  {
+    "sku": "SM-L715FZKATGY",
+    "name": "Galaxy Watch Ultra2 | Galaxy Watch Ultra2 | Black"
+  },
+  {
+    "sku": "SM-L715FZSATGY",
+    "name": "Galaxy Watch Ultra2 | Galaxy Watch Ultra2 | Silver"
   }
 ]
