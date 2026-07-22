@@ -1,9 +1,5 @@
 [
   {
-    "sku": "SM-F9760ZWPTGY",
-    "name": "Galaxy Z Fold8 Ultra | 1TB+16GB | Cream 雪絨白"
-  },
-  {
     "sku": "SM-F9760ZKPTGY",
     "name": "Galaxy Z Fold8 Ultra | 1TB+16GB | Graphite 霧岩灰"
   },
@@ -44,14 +40,6 @@
     "name": "Galaxy Z Fold8 Ultra | 256GB+12GB | Violet Shadow 丁香紫"
   },
   {
-    "sku": "SM-F9760DGITGY",
-    "name": "Galaxy Z Fold8 Ultra | 256GB+12GB | Green Shadow 墨翠綠"
-  },
-  {
-    "sku": "SM-F9710ZWPTGY",
-    "name": "Galaxy Z Fold8 | 1TB+16GB | Cream 雪絨白"
-  },
-  {
     "sku": "SM-F9710ZKPTGY",
     "name": "Galaxy Z Fold8 | 1TB+16GB | Graphite 霧岩灰"
   },
@@ -90,14 +78,6 @@
   {
     "sku": "SM-F9710LVITGY",
     "name": "Galaxy Z Fold8 | 256GB+12GB | Lavender 迷迭紫"
-  },
-  {
-    "sku": "SM-F9710ZGITGY",
-    "name": "Galaxy Z Fold8 | 256GB+12GB | Pistachio 琥珀綠"
-  },
-  {
-    "sku": "SM-F7760ZWPTGY",
-    "name": "Galaxy Z Flip8 | 512GB+12GB | Cream 雪絨白"
   },
   {
     "sku": "SM-F7760ZKPTGY",
