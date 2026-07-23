@@ -258,15 +258,24 @@
       document.getElementById("sku-count").textContent = `${count} SKUs`;
     }
 
-    async function fetchStockData(skus) {
+    async function fetchStockData(skus, bustCache = true) {
       if (!skus.length) return [];
       const results = [];
+      const cacheBuster = bustCache ? `&_=${Date.now()}` : "";
+
       for (let i = 0; i < skus.length; i += MAX_SKUS_PER_CALL) {
         const batch = skus.slice(i, i + MAX_SKUS_PER_CALL);
         const params = batch.map(sku => `productCodes=${sku}`).join("&");
-        const url = `${API_BASE}?${params}`;
+        const url = `${API_BASE}?${params}${cacheBuster}`;
+
         try {
-          const response = await fetch(url);
+          const response = await fetch(url, {
+            cache: "no-store",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache"
+            }
+          });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const json = await response.json();
           if (json.productDatas && Array.isArray(json.productDatas)) {
@@ -430,13 +439,14 @@
       tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 text-sm">Loading SKUs and stock data...</td></tr>`;
 
       try {
-        const res = await fetch(JSON_URL);
+        // Bust cache on initial load too (helps after hard refresh)
+        const res = await fetch(`${JSON_URL}?v=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load products.json");
         const products = await res.json();
         cachedProducts = products;
 
         const skus = products.map(p => p.sku);
-        const stockResults = await fetchStockData(skus);
+        const stockResults = await fetchStockData(skus, true);
 
         cachedStockMap = {};
         stockResults.forEach(item => {
@@ -473,8 +483,9 @@
       tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 text-sm">Refreshing stock data...</td></tr>`;
 
       try {
+        // Force live data from Samsung API (aggressive cache bust)
         const skus = cachedProducts.map(p => p.sku);
-        const stockResults = await fetchStockData(skus);
+        const stockResults = await fetchStockData(skus, true);
 
         cachedStockMap = {};
         stockResults.forEach(item => {
@@ -484,13 +495,50 @@
           };
         });
 
-        renderTable(cachedProducts, cachedStockMap);
+        // Re-render with current filters applied and update currentFiltered
+        currentFiltered = getCurrentFilteredProducts();
+        renderTable(currentFiltered, cachedStockMap);
+        renderCards(currentFiltered, cachedStockMap);
         updateLastUpdated();
 
       } catch (error) {
         console.error(error);
         tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-red-500 text-sm">Refresh failed.</td></tr>`;
       }
+    }
+
+    function getCurrentFilteredProducts() {
+      // Helper to re-apply current filters after refresh
+      const searchTerm = document.getElementById("search-input")?.value.toLowerCase().trim() || "";
+      const stockFilter = document.getElementById("filter-stock")?.value || "";
+      const etaFilter = document.getElementById("filter-eta")?.value || "";
+
+      let filtered = cachedProducts;
+
+      if (searchTerm) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+      }
+      if (stockFilter) {
+        filtered = filtered.filter(p => {
+          const info = cachedStockMap[p.sku];
+          const level = info && info.stockLevel !== "—" ? parseInt(info.stockLevel) : 0;
+          if (stockFilter === "in") return level >= 1;
+          if (stockFilter === "low") return level >= 1 && level <= 10;
+          if (stockFilter === "out") return level === 0;
+          return true;
+        });
+      }
+      if (etaFilter) {
+        filtered = filtered.filter(p => {
+          const info = cachedStockMap[p.sku];
+          const etaValue = (info?.shippingETA || "").trim();
+          if (etaFilter === "__no_eta__") return !etaValue || etaValue === "—";
+          if (etaFilter === "__has_eta__") return etaValue && etaValue !== "—";
+          const etaKey = etaValue.substring(0, 10);
+          return etaKey === etaFilter;
+        });
+      }
+      return filtered;
     }
 
     function toggleExportMenu(e) {
