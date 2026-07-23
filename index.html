@@ -479,8 +479,15 @@
 
     async function refreshData() {
       if (!cachedProducts.length) return;
+
       const tbody = document.getElementById("table-body");
+      const mobileContainer = document.getElementById("mobile-cards");
+
+      // Show loading state on both desktop and mobile
       tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 text-sm">Refreshing stock data...</td></tr>`;
+      if (mobileContainer) {
+        mobileContainer.innerHTML = `<div class="px-4 py-8 text-center text-gray-400 text-sm">Refreshing stock data...</div>`;
+      }
 
       try {
         // Force live data from Samsung API (aggressive cache bust)
@@ -504,6 +511,9 @@
       } catch (error) {
         console.error(error);
         tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-red-500 text-sm">Refresh failed.</td></tr>`;
+        if (mobileContainer) {
+          mobileContainer.innerHTML = `<div class="px-4 py-8 text-center text-red-500 text-sm">Refresh failed.</div>`;
+        }
       }
     }
 
