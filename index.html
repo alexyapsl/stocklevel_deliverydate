@@ -246,6 +246,51 @@
       return { bg: "stock-low",    dot: "green" };
     }
 
+    // Extract a YYYY-MM-DD style key from an ETA string for filtering.
+    // Looks for patterns like 2026-08-09, 2026年8月9日, 9th Aug 2026, etc.
+    function extractDateKey(etaText) {
+      if (!etaText || etaText === "—" || etaText === "Error") return "";
+      const str = etaText.trim();
+
+      // Try ISO-like date first (2026-08-09 or 2026/08/09)
+      let m = str.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (m) {
+        const y = m[1];
+        const mo = m[2].padStart(2, "0");
+        const d = m[3].padStart(2, "0");
+        return `${y}-${mo}-${d}`;
+      }
+
+      // Try Chinese date pattern (2026年8月9日)
+      m = str.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+      if (m) {
+        const y = m[1];
+        const mo = m[2].padStart(2, "0");
+        const d = m[3].padStart(2, "0");
+        return `${y}-${mo}-${d}`;
+      }
+
+      // Try English month names (Aug 9, 2026 or 9 Aug 2026)
+      const months = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+      m = str.match(/(\d{1,2})\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s*,?\s*(\d{4})/i);
+      if (m) {
+        const d = m[1].padStart(2, "0");
+        const mo = String(months[m[2].toLowerCase()]).padStart(2, "0");
+        const y = m[3];
+        return `${y}-${mo}-${d}`;
+      }
+      m = str.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})\s*,?\s*(\d{4})/i);
+      if (m) {
+        const d = m[2].padStart(2, "0");
+        const mo = String(months[m[1].toLowerCase()]).padStart(2, "0");
+        const y = m[3];
+        return `${y}-${mo}-${d}`;
+      }
+
+      // Fallback: no recognizable date
+      return "";
+    }
+
     function updateLastUpdated() {
       const el = document.getElementById("last-updated");
       const now = new Date();
@@ -279,7 +324,21 @@
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const json = await response.json();
           if (json.productDatas && Array.isArray(json.productDatas)) {
-            results.push(...json.productDatas);
+            // Map API response: prefer shippingETA, fallback to full backOrderMessage
+            const mapped = json.productDatas.map(item => {
+              let etaValue = "—";
+              if (item.shippingETA && item.shippingETA.trim() !== "") {
+                etaValue = item.shippingETA.trim();
+              } else if (item.backOrderMessage && item.backOrderMessage.trim() !== "") {
+                etaValue = item.backOrderMessage.trim();
+              }
+              return {
+                productCode: item.productCode,
+                stockLevel: item.stockLevel ?? "—",
+                shippingETA: etaValue
+              };
+            });
+            results.push(...mapped);
           }
         } catch (error) {
           console.error("Failed to fetch batch:", batch, error);
@@ -388,8 +447,9 @@
           if (etaFilter === "__has_eta__") {
             return etaValue && etaValue !== "—";
           }
-          const etaKey = etaValue.substring(0, 10);
-          return etaKey === etaFilter;
+          // Compare using the extracted date key (so partial date matching still works)
+          const dateKey = extractDateKey(etaValue);
+          return dateKey === etaFilter;
         });
       }
 
@@ -402,13 +462,13 @@
       const etaSelect = document.getElementById("filter-eta");
       if (!etaSelect) return;
 
-      const uniqueEtaKeys = new Set();
+      const uniqueDateKeys = new Set();
 
       products.forEach(p => {
         const info = cachedStockMap[p.sku];
         if (info && info.shippingETA && info.shippingETA !== "—") {
-          const key = info.shippingETA.substring(0, 10);
-          if (key) uniqueEtaKeys.add(key);
+          const dateKey = extractDateKey(info.shippingETA);
+          if (dateKey) uniqueDateKeys.add(dateKey);
         }
       });
 
@@ -426,7 +486,7 @@
       hasEtaOption.textContent = "Has ETA";
       etaSelect.appendChild(hasEtaOption);
 
-      Array.from(uniqueEtaKeys).sort().forEach(key => {
+      Array.from(uniqueDateKeys).sort().forEach(key => {
         const option = document.createElement("option");
         option.value = key;
         option.textContent = key;
@@ -544,8 +604,8 @@
           const etaValue = (info?.shippingETA || "").trim();
           if (etaFilter === "__no_eta__") return !etaValue || etaValue === "—";
           if (etaFilter === "__has_eta__") return etaValue && etaValue !== "—";
-          const etaKey = etaValue.substring(0, 10);
-          return etaKey === etaFilter;
+          const dateKey = extractDateKey(etaValue);
+          return dateKey === etaFilter;
         });
       }
       return filtered;
