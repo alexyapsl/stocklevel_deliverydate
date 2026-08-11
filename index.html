@@ -168,6 +168,21 @@
         </div>
       </div>
 
+      <!-- SKU Lookup -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
+        <div class="flex flex-col md:flex-row gap-3">
+          <input type="text" id="sku-lookup-input"
+            class="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+            placeholder="Enter SKU for live lookup (e.g. SM-F9760ZKPTGY)..."
+            onkeypress="if (event.key === 'Enter') lookupSku()">
+          <button onclick="lookupSku()" id="sku-lookup-btn"
+            class="px-5 py-2 bg-gray-900 hover:bg-black text-white rounded-xl text-sm font-medium transition-colors whitespace-nowrap">
+            Look up SKU
+          </button>
+        </div>
+        <div id="sku-lookup-result" class="hidden mt-4"></div>
+      </div>
+
       <!-- Search + Filters -->
       <div class="flex flex-col md:flex-row gap-3 mb-4">
         <input type="text" id="search-input"
@@ -348,6 +363,94 @@
         }
       }
       return results;
+    }
+
+    async function lookupSku() {
+      const input = document.getElementById("sku-lookup-input");
+      const resultEl = document.getElementById("sku-lookup-result");
+      const btn = document.getElementById("sku-lookup-btn");
+      const sku = input.value.trim().toUpperCase();
+
+      if (!sku) {
+        resultEl.classList.remove("hidden");
+        resultEl.innerHTML = `<div class="text-sm text-gray-400">Enter a SKU above to look up.</div>`;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Looking up...";
+      resultEl.classList.remove("hidden");
+      resultEl.innerHTML = `<div class="text-sm text-gray-400">Querying Samsung API for ${sku}...</div>`;
+
+      try {
+        const url = `${API_BASE}?productCodes=${encodeURIComponent(sku)}&_=${Date.now()}`;
+        const response = await fetch(url, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache" }
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        const item = (json.productDatas || []).find(d => d.productCode === sku) || (json.productDatas || [])[0];
+
+        if (!item || (item.resultCode && item.resultCode !== "0000")) {
+          const msg = item && item.resultMessage ? item.resultMessage : `${sku} not found in Samsung HK shop.`;
+          resultEl.innerHTML = `
+            <div class="flex items-center gap-x-2 text-sm text-red-600">
+              <span>⚠️</span>
+              <span>${msg}</span>
+            </div>`;
+          return;
+        }
+
+        // Stock: prefer numeric stockLevel, fall back to status text
+        let stockDisplay, style;
+        const raw = item.stockLevel;
+        if (raw === null || raw === undefined) {
+          const statusText = item.stockLevelStatusDisplay || item.stockLevelStatus || "Unknown";
+          stockDisplay = statusText;
+          style = { bg: "stock-medium", dot: "yellow" };
+        } else {
+          const level = parseInt(raw);
+          stockDisplay = level === 0 ? "OUT OF STOCK" : level;
+          style = getStockClass(level);
+        }
+
+        // ETA: prefer shippingETA, fall back to backOrderMessage
+        let eta = "—";
+        if (item.shippingETA && item.shippingETA.trim() !== "") eta = item.shippingETA.trim();
+        else if (item.backOrderMessage && item.backOrderMessage.trim() !== "") eta = item.backOrderMessage.trim();
+
+        // Name: from local products.json if tracked, otherwise whatever the API gives
+        const known = cachedProducts.find(p => p.sku === sku);
+        const name = known ? known.name : (item.productName || item.name || "Not in tracked product list");
+
+        resultEl.innerHTML = `
+          <div class="flex flex-col md:flex-row md:items-center gap-y-3 gap-x-6">
+            <div class="min-w-0">
+              <div class="font-mono text-xs text-gray-500">${sku}</div>
+              <div class="font-medium text-gray-900 text-sm mt-0.5">${name}</div>
+            </div>
+            <div class="flex items-center gap-x-6 md:ml-auto">
+              <div>
+                <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Stock Level</div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${style.bg}">
+                  <span class="status-dot ${style.dot}"></span>
+                  ${stockDisplay}
+                </span>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Shipping ETA</div>
+                <span class="text-sm text-gray-700">${eta}</span>
+              </div>
+            </div>
+          </div>`;
+      } catch (error) {
+        console.error("SKU lookup failed:", error);
+        resultEl.innerHTML = `<div class="text-sm text-red-500">Lookup failed: ${error.message}. Check console for details.</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Look up SKU";
+      }
     }
 
     function renderTable(products, stockMap) {
