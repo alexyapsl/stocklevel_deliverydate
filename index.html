@@ -238,16 +238,23 @@
     let cachedProducts = [];
     let cachedStockMap = {};
 
+    const SESSION_KEY = "slc_unlocked";
+
+    function unlockDashboard() {
+      hasAccess = true;
+      document.getElementById("password-gate").classList.add("hidden");
+      document.getElementById("dashboard").classList.remove("hidden");
+      loadInitialData();
+    }
+
     function checkPassword() {
       const input = document.getElementById("password-input");
       const errorEl = document.getElementById("password-error");
       
       if (input.value === PASSWORD) {
-        hasAccess = true;
+        try { sessionStorage.setItem(SESSION_KEY, "1"); } catch (e) {}
         errorEl.classList.add("hidden");
-        document.getElementById("password-gate").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        loadInitialData();
+        unlockDashboard();
       } else {
         errorEl.classList.remove("hidden");
         input.value = "";
@@ -777,6 +784,14 @@
     }
 
     window.onload = () => {
+      // Session-based unlock: if the password was already entered in this
+      // tab/session, skip the gate entirely (sessionStorage dies with the tab).
+      let unlocked = false;
+      try { unlocked = sessionStorage.getItem(SESSION_KEY) === "1"; } catch (e) {}
+      if (unlocked) {
+        unlockDashboard();
+        return;
+      }
       const pwInput = document.getElementById("password-input");
       if (pwInput) pwInput.focus();
     };
