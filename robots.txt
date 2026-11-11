@@ -1,0 +1,5 @@
+# Allow crawling of the HTML page itself so Google can see the
+# noindex meta tag and de-index it; block raw data files.
+User-agent: *
+Disallow: /data/
+Disallow: /scripts/
